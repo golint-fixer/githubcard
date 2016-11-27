@@ -105,7 +105,13 @@ func getIP(servername string, ip string, port int) (string, int) {
 func main() {
 	var token = flag.String("token", "", "Token for auth")
 	var dryRun = flag.Bool("dryrun", false, "Whether to run in dry run mode")
+	var quiet = flag.Bool("quiet", true, "Suppress logging output")
 	flag.Parse()
+
+	if *quiet {
+		log.SetOutput(ioutil.Discard)
+	}
+
 	bridge := GithubBridge{accessCode: *token}
 
 	projects := bridge.GetProjects()
