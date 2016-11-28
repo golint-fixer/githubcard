@@ -78,15 +78,17 @@ func (b *GithubBridge) GetIssues(project string) pb.CardList {
 	for _, issue := range data {
 		issueMap := issue.(map[string]interface{})
 
-		issueSource := issueMap["url"].(string)
-		issueTitle := issueMap["title"].(string)
-		issueText := issueMap["body"].(string)
+		if _, ok := issueMap["pull_request"]; !ok {
+			issueSource := issueMap["url"].(string)
+			issueTitle := issueMap["title"].(string)
+			issueText := issueMap["body"].(string)
 
-		card := &pb.Card{}
-		card.Text = issueTitle + "\n" + issueText + "\n\n" + issueSource
-		card.Hash = issueSource
-		card.Channel = pb.Card_ISSUES
-		cardlist.Cards = append(cardlist.Cards, card)
+			card := &pb.Card{}
+			card.Text = issueTitle + "\n" + issueText + "\n\n" + issueSource
+			card.Hash = issueSource
+			card.Channel = pb.Card_ISSUES
+			cardlist.Cards = append(cardlist.Cards, card)
+		}
 	}
 
 	return cardlist
