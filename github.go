@@ -85,8 +85,9 @@ func (b *GithubBridge) GetIssues(project string) pb.CardList {
 
 			card := &pb.Card{}
 			card.Text = issueTitle + "\n" + issueText + "\n\n" + issueSource
-			card.Hash = issueSource
+			card.Hash = "githubissue-" + issueSource
 			card.Channel = pb.Card_ISSUES
+			card.Priority = 100 // TODO: add in days since exist here
 			cardlist.Cards = append(cardlist.Cards, card)
 		}
 	}
@@ -132,6 +133,7 @@ func main() {
 		}
 		defer conn.Close()
 		client := pb.NewCardServiceClient(conn)
+		_, err = client.DeleteCards(context.Background(), &pb.DeleteRequest{HashPrefix: "githubissue"})
 		_, err = client.AddCards(context.Background(), &issues)
 		if err != nil {
 			log.Printf("Problem adding cards %v", err)
