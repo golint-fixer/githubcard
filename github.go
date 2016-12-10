@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -64,10 +65,7 @@ func (b *GithubBridge) GetProjects() []Project {
 func (b *GithubBridge) GetIssues(project string) pb.CardList {
 	cardlist := pb.CardList{}
 	urlv := "https://api.github.com/repos/" + project + "/issues?state=open"
-	log.Printf("VISITING %v", urlv)
 	body := b.visitURL(urlv)
-
-	log.Printf("BODY = %v", body)
 
 	var data []interface{}
 	err := json.Unmarshal([]byte(body), &data)
@@ -83,11 +81,17 @@ func (b *GithubBridge) GetIssues(project string) pb.CardList {
 			issueTitle := issueMap["title"].(string)
 			issueText := issueMap["body"].(string)
 
+			date, err := time.Parse("2006-01-02T15:04:04Z", issueMap["created_at"].(string))
+
+			if err != nil {
+				log.Printf("Error reading dates: %v", err)
+			}
+
 			card := &pb.Card{}
 			card.Text = issueTitle + "\n" + issueText + "\n\n" + issueSource
 			card.Hash = "githubissue-" + issueSource
 			card.Channel = pb.Card_ISSUES
-			card.Priority = 100 // TODO: add in days since exist here
+			card.Priority = int32(time.Now().Sub(date) / time.Hour)
 			cardlist.Cards = append(cardlist.Cards, card)
 		}
 	}
