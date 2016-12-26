@@ -81,7 +81,7 @@ func (b *GithubBridge) GetIssues(project string) pb.CardList {
 			issueTitle := issueMap["title"].(string)
 			issueText := issueMap["body"].(string)
 
-			date, err := time.Parse("2006-01-02T15:04:04Z", issueMap["created_at"].(string))
+			date, err := time.Parse("2006-01-02T15:04:05Z", issueMap["created_at"].(string))
 
 			if err != nil {
 				log.Printf("Error reading dates: %v", err)
@@ -91,7 +91,10 @@ func (b *GithubBridge) GetIssues(project string) pb.CardList {
 			card.Text = issueTitle + "\n" + issueText + "\n\n" + issueSource
 			card.Hash = "githubissue-" + issueSource
 			card.Channel = pb.Card_ISSUES
+			log.Printf("CHECKING %v %v %v (%v)", time.Now(), date, time.Now().Sub(date), issueTitle)
+			log.Printf("FROM %v", issueMap)
 			card.Priority = int32(time.Now().Sub(date) / time.Second)
+			log.Printf("CHECKING PR %v", card.Priority)
 			cardlist.Cards = append(cardlist.Cards, card)
 		}
 	}
