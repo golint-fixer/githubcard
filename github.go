@@ -91,7 +91,7 @@ func (b *GithubBridge) GetIssues(project string) pb.CardList {
 			card.Text = issueTitle + "\n" + issueText + "\n\n" + issueSource
 			card.Hash = "githubissue-" + issueSource
 			card.Channel = pb.Card_ISSUES
-			card.Priority = int32(time.Now().Sub(date) / time.Hour)
+			card.Priority = int32(time.Now().Sub(date) / time.Second)
 			cardlist.Cards = append(cardlist.Cards, card)
 		}
 	}
