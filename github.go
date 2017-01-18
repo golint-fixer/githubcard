@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
 	"io/ioutil"
@@ -20,6 +21,32 @@ import (
 // GithubBridge the bridge to the github API
 type GithubBridge struct {
 	accessCode string
+}
+
+func (b *GithubBridge) postURL(urlv string, data string) string {
+	url := urlv
+	if len(b.accessCode) > 0 && strings.Contains(urlv, "?") {
+		url = url + "&access_token=" + b.accessCode
+	} else {
+		url = url + "?access_token=" + b.accessCode
+	}
+
+	log.Printf("Posting: %v and %v", url, data)
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer([]byte(data)))
+
+	if err != nil {
+		panic(err)
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		panic(err)
+	}
+
+	log.Printf("RETURN: %v", string(body))
+	return string(body)
 }
 
 func (b *GithubBridge) visitURL(urlv string) string {
@@ -59,6 +86,20 @@ func (b *GithubBridge) GetProjects() []Project {
 	var projects []Project
 	json.Unmarshal([]byte(list), &projects)
 	return projects
+}
+
+// AddIssue adds an issue
+func (b *GithubBridge) AddIssue(owner, repo, title, body string) {
+	ip, port := getIP("cardserver", "10.0.1.17", 50055)
+	conn, err := grpc.Dial(ip+":"+strconv.Itoa(port), grpc.WithInsecure())
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
+
+	data := "{\"title\": \"" + title + "\", \"body\": \"" + body + "\", \"assignee\": \"" + owner + "\"}"
+	urlv := "https://api.github.com/repos/" + owner + "/" + repo + "/issues"
+	b.postURL(urlv, data)
 }
 
 // GetIssues Gets github issues for a given project
@@ -116,6 +157,7 @@ func main() {
 	var token = flag.String("token", "", "Token for auth")
 	var dryRun = flag.Bool("dryrun", false, "Whether to run in dry run mode")
 	var quiet = flag.Bool("quiet", true, "Suppress logging output")
+	var addissues = flag.Bool("issues", false, "Just create issues")
 	flag.Parse()
 
 	if *quiet {
@@ -124,8 +166,34 @@ func main() {
 
 	bridge := GithubBridge{accessCode: *token}
 
-	projects := bridge.GetProjects()
+	log.Printf("HERE %v", addissues)
+	if *addissues {
+		ip, port := getIP("cardserver", "10.0.1.17", 50055)
+		conn, err := grpc.Dial(ip+":"+strconv.Itoa(port), grpc.WithInsecure())
+		if err != nil {
+			panic(err)
+		}
+		defer conn.Close()
+		client := pb.NewCardServiceClient(conn)
+		cards, err := client.GetCards(context.Background(), &pb.Empty{})
+		if err != nil {
+			panic(err)
+		}
 
+		for _, card := range cards.Cards {
+			log.Printf("CARD = %v", card.Hash)
+			if strings.HasPrefix(card.Hash, "addgithubissue") {
+				bridge.AddIssue("brotherlogic", strings.Split(card.Hash, "-")[1], strings.Split(card.Text, "|")[0], strings.Split(card.Text, "|")[1])
+			}
+		}
+
+		_, err = client.DeleteCards(context.Background(), &pb.DeleteRequest{HashPrefix: "addgithubissue"})
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	projects := bridge.GetProjects()
 	issues := pb.CardList{}
 	for _, project := range projects {
 		tempIssues := bridge.GetIssues("brotherlogic/" + project.Name)
@@ -141,6 +209,9 @@ func main() {
 		defer conn.Close()
 		client := pb.NewCardServiceClient(conn)
 		_, err = client.DeleteCards(context.Background(), &pb.DeleteRequest{HashPrefix: "githubissue"})
+		if err != nil {
+			log.Printf("Error deleting cards")
+		}
 		_, err = client.AddCards(context.Background(), &issues)
 		if err != nil {
 			log.Printf("Problem adding cards %v", err)
@@ -148,4 +219,5 @@ func main() {
 	} else {
 		log.Printf("Would write: %v", issues)
 	}
+
 }
