@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"flag"
+	"hash/fnv"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -102,6 +103,12 @@ func (b *GithubBridge) AddIssue(owner, repo, title, body string) {
 	b.postURL(urlv, data)
 }
 
+func hash(s string) int32 {
+	h := fnv.New32a()
+	h.Write([]byte(s))
+	return int32(h.Sum32())
+}
+
 // GetIssues Gets github issues for a given project
 func (b *GithubBridge) GetIssues(project string) pb.CardList {
 	cardlist := pb.CardList{}
@@ -134,7 +141,7 @@ func (b *GithubBridge) GetIssues(project string) pb.CardList {
 			card.Channel = pb.Card_ISSUES
 			log.Printf("CHECKING %v %v %v (%v)", time.Now(), date, time.Now().Sub(date), issueTitle)
 			log.Printf("FROM %v", issueMap)
-			card.Priority = int32(time.Now().Sub(date) / time.Second)
+			card.Priority = int32(time.Now().Sub(date)/time.Second) + hash(card.Text)%1000
 			log.Printf("CHECKING PR %v", card.Priority)
 			cardlist.Cards = append(cardlist.Cards, card)
 		}
