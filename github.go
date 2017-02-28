@@ -190,7 +190,7 @@ func main() {
 		for _, card := range cards.Cards {
 			log.Printf("CARD = %v", card.Hash)
 			if strings.HasPrefix(card.Hash, "addgithubissue") {
-				bridge.AddIssue("brotherlogic", strings.Split(card.Hash, "-")[1], strings.Split(card.Text, "|")[0], strings.Split(card.Text, "|")[1])
+				bridge.AddIssue("brotherlogic", strings.Split(card.Hash, "-")[2], strings.Split(card.Text, "|")[0], strings.Split(card.Text, "|")[1])
 			}
 		}
 
