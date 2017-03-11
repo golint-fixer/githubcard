@@ -208,7 +208,7 @@ func main() {
 	}
 
 	if !*dryRun {
-		ip, port := getIP("cardserver", "10.0.1.17", 50055)
+		ip, port := getIP("cardserver", "192.168.86.34", 50055)
 		conn, err := grpc.Dial(ip+":"+strconv.Itoa(port), grpc.WithInsecure())
 		if err != nil {
 			panic(err)
