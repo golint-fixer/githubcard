@@ -180,13 +180,13 @@ func main() {
 		ip, port := getIP("cardserver", "192.168.86.34", 50055)
 		conn, err := grpc.Dial(ip+":"+strconv.Itoa(port), grpc.WithInsecure())
 		if err != nil {
-			panic(err)
+			log.Fatalf("Error here: %v", err)
 		}
 		defer conn.Close()
 		client := pb.NewCardServiceClient(conn)
 		cards, err := client.GetCards(context.Background(), &pb.Empty{})
 		if err != nil {
-			panic(err)
+			log.Fatalf("Error here: %v", (err))
 		}
 
 		for _, card := range cards.Cards {
