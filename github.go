@@ -14,6 +14,7 @@ import (
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/grpclog"
 
 	pb "github.com/brotherlogic/cardserver/card"
 	pbdi "github.com/brotherlogic/discovery/proto"
@@ -169,6 +170,7 @@ func main() {
 
 	if *quiet {
 		log.SetOutput(ioutil.Discard)
+		grpclog.SetLogger(log.New(ioutil.Discard, "", -1))
 	}
 
 	bridge := GithubBridge{accessCode: *token}
