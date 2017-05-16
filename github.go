@@ -51,7 +51,7 @@ func (b *GithubBridge) postURL(urlv string, data string) string {
 	return string(body)
 }
 
-func (b *GithubBridge) visitURL(urlv string) string {
+func (b *GithubBridge) visitURL(urlv string) (string, error) {
 
 	url := urlv
 	if len(b.accessCode) > 0 && strings.Contains(urlv, "?") {
@@ -64,17 +64,17 @@ func (b *GithubBridge) visitURL(urlv string) string {
 	resp, err := http.Get(url)
 
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
-	return string(body)
+	return string(body), nil
 }
 
 // Project is a project in the github world
@@ -84,8 +84,11 @@ type Project struct {
 
 // GetProjects from github
 func (b *GithubBridge) GetProjects() []Project {
-	list := b.visitURL("https://api.github.com/user/repos?per_page=100")
+	list, err := b.visitURL("https://api.github.com/user/repos?per_page=100")
 	var projects []Project
+	if err != nil {
+		return projects
+	}
 	json.Unmarshal([]byte(list), &projects)
 	return projects
 }
@@ -114,10 +117,14 @@ func hash(s string) int32 {
 func (b *GithubBridge) GetIssues(project string) pb.CardList {
 	cardlist := pb.CardList{}
 	urlv := "https://api.github.com/repos/" + project + "/issues?state=open"
-	body := b.visitURL(urlv)
+	body, err := b.visitURL(urlv)
+
+	if err != nil {
+		return cardlist
+	}
 
 	var data []interface{}
-	err := json.Unmarshal([]byte(body), &data)
+	err = json.Unmarshal([]byte(body), &data)
 	if err != nil {
 		panic(err)
 	}
