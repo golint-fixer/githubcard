@@ -164,7 +164,10 @@ func getIP(servername string, ip string, port int) (string, int) {
 
 	registry := pbdi.NewDiscoveryServiceClient(conn)
 	entry := pbdi.RegistryEntry{Name: servername}
-	r, _ := registry.Discover(context.Background(), &entry)
+	r, err := registry.Discover(context.Background(), &entry)
+	if err != nil {
+		return "", -1
+	}
 	return r.Ip, int(r.Port)
 }
 
@@ -218,22 +221,23 @@ func main() {
 
 	if !*dryRun {
 		ip, port := getIP("cardserver", "192.168.86.34", 50055)
-		conn, err := grpc.Dial(ip+":"+strconv.Itoa(port), grpc.WithInsecure())
-		if err != nil {
-			panic(err)
+		if port > 0 {
+			conn, err := grpc.Dial(ip+":"+strconv.Itoa(port), grpc.WithInsecure())
+			if err != nil {
+				panic(err)
+			}
+			defer conn.Close()
+			client := pb.NewCardServiceClient(conn)
+			_, err = client.DeleteCards(context.Background(), &pb.DeleteRequest{HashPrefix: "githubissue"})
+			if err != nil {
+				log.Printf("Error deleting cards")
+			}
+			_, err = client.AddCards(context.Background(), &issues)
+			if err != nil {
+				log.Printf("Problem adding cards %v", err)
+			}
+		} else {
+			log.Printf("Would write: %v", issues)
 		}
-		defer conn.Close()
-		client := pb.NewCardServiceClient(conn)
-		_, err = client.DeleteCards(context.Background(), &pb.DeleteRequest{HashPrefix: "githubissue"})
-		if err != nil {
-			log.Printf("Error deleting cards")
-		}
-		_, err = client.AddCards(context.Background(), &issues)
-		if err != nil {
-			log.Printf("Problem adding cards %v", err)
-		}
-	} else {
-		log.Printf("Would write: %v", issues)
 	}
-
 }
