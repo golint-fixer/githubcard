@@ -95,7 +95,7 @@ func (b *GithubBridge) GetProjects() []Project {
 
 // AddIssue adds an issue
 func (b *GithubBridge) AddIssue(owner, repo, title, body string) {
-	ip, port := getIP("cardserver", "192.168.86.34", 50055)
+	ip, port := getIP("cardserver", "192.168.86.64", 50055)
 	conn, err := grpc.Dial(ip+":"+strconv.Itoa(port), grpc.WithInsecure())
 	if err != nil {
 		panic(err)
@@ -184,7 +184,7 @@ func main() {
 
 	log.Printf("HERE %v", addissues)
 	if *addissues {
-		ip, port := getIP("cardserver", "192.168.86.34", 50055)
+		ip, port := getIP("cardserver", "192.168.86.64", 50055)
 		conn, err := grpc.Dial(ip+":"+strconv.Itoa(port), grpc.WithInsecure())
 		if err != nil {
 			log.Fatalf("Error here: %v", err)
@@ -217,7 +217,7 @@ func main() {
 	}
 
 	if !*dryRun {
-		ip, port := getIP("cardserver", "192.168.86.34", 50055)
+		ip, port := getIP("cardserver", "192.168.86.64", 50055)
 		conn, err := grpc.Dial(ip+":"+strconv.Itoa(port), grpc.WithInsecure())
 		if err != nil {
 			panic(err)
