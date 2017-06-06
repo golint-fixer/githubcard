@@ -164,7 +164,10 @@ func getIP(servername string, ip string, port int) (string, int) {
 
 	registry := pbdi.NewDiscoveryServiceClient(conn)
 	entry := pbdi.RegistryEntry{Name: servername}
-	r, _ := registry.Discover(context.Background(), &entry)
+	r, err := registry.Discover(context.Background(), &entry)
+	if err != nil {
+		return "", -1
+	}
 	return r.Ip, int(r.Port)
 }
 
@@ -231,9 +234,10 @@ func main() {
 		_, err = client.AddCards(context.Background(), &issues)
 		if err != nil {
 			log.Printf("Problem adding cards %v", err)
+		} else {
+			log.Printf("Would write: %v", issues)
+
 		}
-	} else {
-		log.Printf("Would write: %v", issues)
 	}
 
 }
