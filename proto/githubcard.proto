@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package githubcard;
+
+message Token {
+	string token = 1;
+}
