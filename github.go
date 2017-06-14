@@ -273,6 +273,7 @@ func main() {
 			log.Printf("Failed to read token: %v", err)
 		} else {
 			b.accessCode = m.(*pbgh.Token).GetToken()
+			b.RegisterServingTask(b.RunPass)
 			b.Serve()
 		}
 	}
