@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/brotherlogic/keystore/client"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
@@ -253,6 +254,7 @@ func main() {
 	flag.Parse()
 
 	b := Init()
+	b.GoServer.KSclient = *keystoreclient.GetClient()
 
 	//Turn off logging
 	if *quiet {
