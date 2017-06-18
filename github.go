@@ -46,8 +46,13 @@ func (b GithubBridge) ReportHealth() bool {
 	return true
 }
 
+// Mote promotes this server
+func (b GithubBridge) Mote(master bool) error {
+	return nil
+}
+
 const (
-	wait = 60000 // Wait one minute between runs
+	wait = time.Minute // Wait one minute between runs
 )
 
 func (b *GithubBridge) postURL(urlv string, data string) string {
@@ -205,6 +210,7 @@ func (b GithubBridge) RunPass() {
 }
 
 func (b GithubBridge) passover() {
+	log.Printf("RUNNING PASSOVER")
 	ip, port := getIP("cardserver")
 	conn, err := grpc.Dial(ip+":"+strconv.Itoa(port), grpc.WithInsecure())
 	if err != nil {
@@ -224,14 +230,19 @@ func (b GithubBridge) passover() {
 		}
 	}
 
+	log.Printf("Deleting cards: %v", &pb.DeleteRequest{HashPrefix: "addgithubissue"})
 	_, err = client.DeleteCards(context.Background(), &pb.DeleteRequest{HashPrefix: "addgithubissue"})
+	log.Printf("HERE %v", err)
 	if err != nil {
 		panic(err)
 	}
 
+	log.Printf("Doing project call")
 	projects := b.GetProjects()
 	issues := pb.CardList{}
+	log.Printf("Getting projects")
 	for _, project := range projects {
+		log.Printf("Getting issues for %v", project.Name)
 		tempIssues := b.GetIssues("brotherlogic/" + project.Name)
 		issues.Cards = append(issues.Cards, tempIssues.Cards...)
 	}
@@ -272,6 +283,7 @@ func main() {
 		if err != nil {
 			log.Printf("Failed to read token: %v", err)
 		} else {
+			log.Printf("GOT TOKEN: %v", m)
 			b.accessCode = m.(*pbgh.Token).GetToken()
 			b.RegisterServingTask(b.RunPass)
 			b.Serve()
