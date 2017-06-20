@@ -282,7 +282,7 @@ func main() {
 	}
 
 	b.PrepServer()
-	b.RegisterServer("githubbridge", false)
+	b.RegisterServer("githubcard", false)
 
 	if len(*token) > 0 {
 		b.Save("/github.com/brotherlogic/githubcard/token", &pbgh.Token{Token: *token})
