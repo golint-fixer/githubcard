@@ -43,6 +43,7 @@ func (b GithubBridge) DoRegister(server *grpc.Server) {
 
 // ReportHealth alerts if we're not healthy
 func (b GithubBridge) ReportHealth() bool {
+	log.Printf("REPORTING HEALTH")
 	return true
 }
 
@@ -205,11 +206,16 @@ func getIP(servername string) (string, int) {
 func (b GithubBridge) RunPass() {
 	for b.serving {
 		time.Sleep(wait)
-		b.passover()
+		err := b.passover()
+		if err != nil {
+			log.Printf("FAILED to run: %v", err)
+		}
 	}
+
+	log.Printf("Ducking out of serving")
 }
 
-func (b GithubBridge) passover() {
+func (b GithubBridge) passover() error {
 	log.Printf("RUNNING PASSOVER")
 	ip, port := getIP("cardserver")
 	conn, err := grpc.Dial(ip+":"+strconv.Itoa(port), grpc.WithInsecure())
@@ -234,7 +240,7 @@ func (b GithubBridge) passover() {
 	_, err = client.DeleteCards(context.Background(), &pb.DeleteRequest{HashPrefix: "addgithubissue"})
 	log.Printf("HERE %v", err)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	log.Printf("Doing project call")
@@ -257,6 +263,8 @@ func (b GithubBridge) passover() {
 	} else {
 		log.Printf("Would write: %v", issues)
 	}
+
+	return nil
 }
 
 func main() {
