@@ -273,7 +273,7 @@ func main() {
 	flag.Parse()
 
 	b := Init()
-	b.GoServer.KSclient = *keystoreclient.GetClient()
+	b.GoServer.KSclient = *keystoreclient.GetClient(getIP)
 
 	//Turn off logging
 	if *quiet {
