@@ -41,13 +41,13 @@ func (httpGetter prodHTTPGetter) Post(url string, data string) (*http.Response, 
 	return http.Post(url, "application/json", bytes.NewBuffer([]byte(data)))
 }
 
-func (httpGetter prodHTTPGetter) Get(url string, data string) (*http.Response, error) {
+func (httpGetter prodHTTPGetter) Get(url string) (*http.Response, error) {
 	return http.Get(url)
 }
 
 //Init a record getter
 func Init() *GithubBridge {
-	s := &GithubBridge{GoServer: &goserver.GoServer{}, serving: true}
+	s := &GithubBridge{GoServer: &goserver.GoServer{}, serving: true, getter: prodHTTPGetter{}}
 	s.Register = s
 	return s
 }
