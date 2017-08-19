@@ -5,3 +5,21 @@ package githubcard;
 message Token {
 	string token = 1;
 }
+
+message Issue {
+	string title = 1;
+	string body = 2;
+	string service = 3;
+	int32 number = 4;
+
+	enum IssueState {
+		OPEN = 0;
+		CLOSED = 1;
+	}
+	IssueState state = 5;
+}
+
+service Github {
+	rpc AddIssue(Issue) returns (Issue) {};
+	rpc Get(Issue) returns (Issue) {};
+}

@@ -9,12 +9,18 @@ It is generated from these files:
 
 It has these top-level messages:
 	Token
+	Issue
 */
 package githubcard
 
 import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
 import math "math"
+
+import (
+	context "golang.org/x/net/context"
+	grpc "google.golang.org/grpc"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -26,6 +32,27 @@ var _ = math.Inf
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
+type Issue_IssueState int32
+
+const (
+	Issue_OPEN   Issue_IssueState = 0
+	Issue_CLOSED Issue_IssueState = 1
+)
+
+var Issue_IssueState_name = map[int32]string{
+	0: "OPEN",
+	1: "CLOSED",
+}
+var Issue_IssueState_value = map[string]int32{
+	"OPEN":   0,
+	"CLOSED": 1,
+}
+
+func (x Issue_IssueState) String() string {
+	return proto.EnumName(Issue_IssueState_name, int32(x))
+}
+func (Issue_IssueState) EnumDescriptor() ([]byte, []int) { return fileDescriptor0, []int{1, 0} }
 
 type Token struct {
 	Token string `protobuf:"bytes,1,opt,name=token" json:"token,omitempty"`
@@ -43,17 +70,182 @@ func (m *Token) GetToken() string {
 	return ""
 }
 
+type Issue struct {
+	Title   string           `protobuf:"bytes,1,opt,name=title" json:"title,omitempty"`
+	Body    string           `protobuf:"bytes,2,opt,name=body" json:"body,omitempty"`
+	Service string           `protobuf:"bytes,3,opt,name=service" json:"service,omitempty"`
+	Number  int32            `protobuf:"varint,4,opt,name=number" json:"number,omitempty"`
+	State   Issue_IssueState `protobuf:"varint,5,opt,name=state,enum=githubcard.Issue_IssueState" json:"state,omitempty"`
+}
+
+func (m *Issue) Reset()                    { *m = Issue{} }
+func (m *Issue) String() string            { return proto.CompactTextString(m) }
+func (*Issue) ProtoMessage()               {}
+func (*Issue) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{1} }
+
+func (m *Issue) GetTitle() string {
+	if m != nil {
+		return m.Title
+	}
+	return ""
+}
+
+func (m *Issue) GetBody() string {
+	if m != nil {
+		return m.Body
+	}
+	return ""
+}
+
+func (m *Issue) GetService() string {
+	if m != nil {
+		return m.Service
+	}
+	return ""
+}
+
+func (m *Issue) GetNumber() int32 {
+	if m != nil {
+		return m.Number
+	}
+	return 0
+}
+
+func (m *Issue) GetState() Issue_IssueState {
+	if m != nil {
+		return m.State
+	}
+	return Issue_OPEN
+}
+
 func init() {
 	proto.RegisterType((*Token)(nil), "githubcard.Token")
+	proto.RegisterType((*Issue)(nil), "githubcard.Issue")
+	proto.RegisterEnum("githubcard.Issue_IssueState", Issue_IssueState_name, Issue_IssueState_value)
+}
+
+// Reference imports to suppress errors if they are not otherwise used.
+var _ context.Context
+var _ grpc.ClientConn
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the grpc package it is being compiled against.
+const _ = grpc.SupportPackageIsVersion4
+
+// Client API for Github service
+
+type GithubClient interface {
+	AddIssue(ctx context.Context, in *Issue, opts ...grpc.CallOption) (*Issue, error)
+	Get(ctx context.Context, in *Issue, opts ...grpc.CallOption) (*Issue, error)
+}
+
+type githubClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewGithubClient(cc *grpc.ClientConn) GithubClient {
+	return &githubClient{cc}
+}
+
+func (c *githubClient) AddIssue(ctx context.Context, in *Issue, opts ...grpc.CallOption) (*Issue, error) {
+	out := new(Issue)
+	err := grpc.Invoke(ctx, "/githubcard.Github/AddIssue", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *githubClient) Get(ctx context.Context, in *Issue, opts ...grpc.CallOption) (*Issue, error) {
+	out := new(Issue)
+	err := grpc.Invoke(ctx, "/githubcard.Github/Get", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for Github service
+
+type GithubServer interface {
+	AddIssue(context.Context, *Issue) (*Issue, error)
+	Get(context.Context, *Issue) (*Issue, error)
+}
+
+func RegisterGithubServer(s *grpc.Server, srv GithubServer) {
+	s.RegisterService(&_Github_serviceDesc, srv)
+}
+
+func _Github_AddIssue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Issue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GithubServer).AddIssue(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/githubcard.Github/AddIssue",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GithubServer).AddIssue(ctx, req.(*Issue))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Github_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Issue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GithubServer).Get(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/githubcard.Github/Get",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GithubServer).Get(ctx, req.(*Issue))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _Github_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "githubcard.Github",
+	HandlerType: (*GithubServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "AddIssue",
+			Handler:    _Github_AddIssue_Handler,
+		},
+		{
+			MethodName: "Get",
+			Handler:    _Github_Get_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "githubcard.proto",
 }
 
 func init() { proto.RegisterFile("githubcard.proto", fileDescriptor0) }
 
 var fileDescriptor0 = []byte{
-	// 75 bytes of a gzipped FileDescriptorProto
+	// 236 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x48, 0xcf, 0x2c, 0xc9,
 	0x28, 0x4d, 0x4a, 0x4e, 0x2c, 0x4a, 0xd1, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x42, 0x88,
 	0x28, 0xc9, 0x72, 0xb1, 0x86, 0xe4, 0x67, 0xa7, 0xe6, 0x09, 0x89, 0x70, 0xb1, 0x96, 0x80, 0x18,
-	0x12, 0x8c, 0x0a, 0x8c, 0x1a, 0x9c, 0x41, 0x10, 0x4e, 0x12, 0x1b, 0x58, 0x87, 0x31, 0x20, 0x00,
-	0x00, 0xff, 0xff, 0xc7, 0x5a, 0xfa, 0x37, 0x45, 0x00, 0x00, 0x00,
+	0x12, 0x8c, 0x0a, 0x8c, 0x1a, 0x9c, 0x41, 0x10, 0x8e, 0xd2, 0x6e, 0x46, 0x2e, 0x56, 0xcf, 0xe2,
+	0xe2, 0xd2, 0x54, 0xb0, 0x7c, 0x66, 0x49, 0x4e, 0x2a, 0x5c, 0x1e, 0xc4, 0x11, 0x12, 0xe2, 0x62,
+	0x49, 0xca, 0x4f, 0xa9, 0x94, 0x60, 0x02, 0x0b, 0x82, 0xd9, 0x42, 0x12, 0x5c, 0xec, 0xc5, 0xa9,
+	0x45, 0x65, 0x99, 0xc9, 0xa9, 0x12, 0xcc, 0x60, 0x61, 0x18, 0x57, 0x48, 0x8c, 0x8b, 0x2d, 0xaf,
+	0x34, 0x37, 0x29, 0xb5, 0x48, 0x82, 0x45, 0x81, 0x51, 0x83, 0x35, 0x08, 0xca, 0x13, 0x32, 0xe2,
+	0x62, 0x2d, 0x2e, 0x49, 0x2c, 0x49, 0x95, 0x60, 0x55, 0x60, 0xd4, 0xe0, 0x33, 0x92, 0xd1, 0x43,
+	0x72, 0x32, 0xd8, 0x76, 0x08, 0x19, 0x0c, 0x52, 0x13, 0x04, 0x51, 0xaa, 0xa4, 0xc4, 0xc5, 0x85,
+	0x10, 0x14, 0xe2, 0xe0, 0x62, 0xf1, 0x0f, 0x70, 0xf5, 0x13, 0x60, 0x10, 0xe2, 0xe2, 0x62, 0x73,
+	0xf6, 0xf1, 0x0f, 0x76, 0x75, 0x11, 0x60, 0x34, 0xca, 0xe6, 0x62, 0x73, 0x07, 0x9b, 0x24, 0x64,
+	0xc4, 0xc5, 0xe1, 0x98, 0x92, 0x02, 0xf1, 0x89, 0x20, 0x86, 0xf1, 0x52, 0x98, 0x42, 0x4a, 0x0c,
+	0x42, 0xba, 0x5c, 0xcc, 0xee, 0xa9, 0x25, 0xc4, 0x2a, 0x4f, 0x62, 0x03, 0x07, 0xae, 0x31, 0x20,
+	0x00, 0x00, 0xff, 0xff, 0xbc, 0xd8, 0xf7, 0x66, 0x70, 0x01, 0x00, 0x00,
 }
