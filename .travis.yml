@@ -20,3 +20,4 @@ before_install:
 
 script:
 - fgt golint $(find ./ | grep .go$ | grep -v card.pb.go)
+- $HOME/gopath/bin/goveralls -service=travis-ci -ignore=github.go -package github.com/brotherlogic/githubcard

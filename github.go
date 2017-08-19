@@ -27,6 +27,22 @@ type GithubBridge struct {
 	*goserver.GoServer
 	accessCode string
 	serving    bool
+	getter     httpGetter
+}
+
+type httpGetter interface {
+	Post(url string, data string) (*http.Response, error)
+	Get(url string) (*http.Response, error)
+}
+
+type prodHTTPGetter struct{}
+
+func (httpGetter prodHTTPGetter) Post(url string, data string) (*http.Response, error) {
+	return http.Post(url, "application/json", bytes.NewBuffer([]byte(data)))
+}
+
+func (httpGetter prodHTTPGetter) Get(url string, data string) (*http.Response, error) {
+	return http.Get(url)
 }
 
 //Init a record getter
@@ -56,7 +72,7 @@ const (
 	wait = time.Minute // Wait one minute between runs
 )
 
-func (b *GithubBridge) postURL(urlv string, data string) string {
+func (b *GithubBridge) postURL(urlv string, data string) (*http.Response, error) {
 	url := urlv
 	if len(b.accessCode) > 0 && strings.Contains(urlv, "?") {
 		url = url + "&access_token=" + b.accessCode
@@ -65,21 +81,7 @@ func (b *GithubBridge) postURL(urlv string, data string) string {
 	}
 
 	log.Printf("Posting: %v and %v", url, data)
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer([]byte(data)))
-
-	if err != nil {
-		panic(err)
-	}
-
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-
-	if err != nil {
-		panic(err)
-	}
-
-	log.Printf("RETURN: %v", string(body))
-	return string(body)
+	return b.getter.Post(url, data)
 }
 
 func (b *GithubBridge) visitURL(urlv string) (string, error) {
@@ -92,8 +94,7 @@ func (b *GithubBridge) visitURL(urlv string) (string, error) {
 	}
 
 	log.Printf("Visiting: %v", url)
-	resp, err := http.Get(url)
-
+	resp, err := b.getter.Get(url)
 	if err != nil {
 		return "", err
 	}
@@ -124,24 +125,50 @@ func (b *GithubBridge) GetProjects() []Project {
 	return projects
 }
 
-// AddIssue adds an issue
-func (b *GithubBridge) AddIssue(owner, repo, title, body string) {
-	ip, port := getIP("cardserver")
-	conn, err := grpc.Dial(ip+":"+strconv.Itoa(port), grpc.WithInsecure())
-	if err != nil {
-		panic(err)
-	}
-	defer conn.Close()
-
+// AddIssueLocal adds an issue
+func (b *GithubBridge) AddIssueLocal(owner, repo, title, body string) ([]byte, error) {
 	data := "{\"title\": \"" + title + "\", \"body\": \"" + body + "\", \"assignee\": \"" + owner + "\"}"
 	urlv := "https://api.github.com/repos/" + owner + "/" + repo + "/issues"
-	b.postURL(urlv, data)
+	resp, err := b.postURL(urlv, data)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+	rb, _ := ioutil.ReadAll(resp.Body)
+
+	return rb, nil
 }
 
 func hash(s string) int32 {
 	h := fnv.New32a()
 	h.Write([]byte(s))
 	return int32(h.Sum32())
+}
+
+// GetIssueLocal Gets github issues for a given project
+func (b *GithubBridge) GetIssueLocal(owner string, project string, number int) (*pbgh.Issue, error) {
+	urlv := "https://api.github.com/repos/" + owner + "/" + project + "/issues/" + strconv.Itoa(number)
+	body, err := b.visitURL(urlv)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var data map[string]interface{}
+	err = json.Unmarshal([]byte(body), &data)
+	if err != nil {
+		panic(err)
+	}
+
+	issue := &pbgh.Issue{Number: int32(number), Service: project, Title: data["title"].(string), Body: data["body"].(string)}
+	if data["state"].(string) == "open" {
+		issue.State = pbgh.Issue_OPEN
+	} else {
+		issue.State = pbgh.Issue_CLOSED
+	}
+
+	return issue, nil
 }
 
 // GetIssues Gets github issues for a given project
@@ -232,7 +259,7 @@ func (b GithubBridge) passover() error {
 	for _, card := range cards.Cards {
 		log.Printf("CARD = %v", card.Hash)
 		if strings.HasPrefix(card.Hash, "addgithubissue") {
-			b.AddIssue("brotherlogic", strings.Split(card.Hash, "-")[2], strings.Split(card.Text, "|")[0], strings.Split(card.Text, "|")[1])
+			b.AddIssueLocal("brotherlogic", strings.Split(card.Hash, "-")[2], strings.Split(card.Text, "|")[0], strings.Split(card.Text, "|")[1])
 		}
 	}
 
