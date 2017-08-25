@@ -61,7 +61,7 @@ func TestAddIssue(t *testing.T) {
 
 func TestGetIssue(t *testing.T) {
 	s := InitTest()
-	ib, err := s.GetIssue(context.Background(), &pb.Issue{Service: "Home", Number: 12})
+	ib, err := s.Get(context.Background(), &pb.Issue{Service: "Home", Number: 12})
 
 	if err != nil {
 		t.Fatalf("Error in getting issue: %v", err)

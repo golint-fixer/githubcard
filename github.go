@@ -54,7 +54,7 @@ func Init() *GithubBridge {
 
 // DoRegister does RPC registration
 func (b GithubBridge) DoRegister(server *grpc.Server) {
-	// Noop
+	pbgh.RegisterGithubServer(server, &b)
 }
 
 // ReportHealth alerts if we're not healthy

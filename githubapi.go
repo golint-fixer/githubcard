@@ -1,8 +1,9 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
+
+	"golang.org/x/net/context"
 
 	pb "github.com/brotherlogic/githubcard/proto"
 )
@@ -20,8 +21,8 @@ func (g *GithubBridge) AddIssue(ctx context.Context, in *pb.Issue) (*pb.Issue, e
 	return in, err
 }
 
-//GetIssue gets an issue from github
-func (g *GithubBridge) GetIssue(ctx context.Context, in *pb.Issue) (*pb.Issue, error) {
+//Get gets an issue from github
+func (g *GithubBridge) Get(ctx context.Context, in *pb.Issue) (*pb.Issue, error) {
 	b, err := g.GetIssueLocal("brotherlogic", in.GetService(), int(in.GetNumber()))
 	return b, err
 }
