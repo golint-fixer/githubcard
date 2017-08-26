@@ -184,7 +184,7 @@ func (b *GithubBridge) GetIssues(project string) pb.CardList {
 	var data []interface{}
 	err = json.Unmarshal([]byte(body), &data)
 	if err != nil {
-		panic(err)
+		return cardlist
 	}
 
 	for _, issue := range data {
