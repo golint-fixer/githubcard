@@ -59,7 +59,6 @@ func (b GithubBridge) DoRegister(server *grpc.Server) {
 
 // ReportHealth alerts if we're not healthy
 func (b GithubBridge) ReportHealth() bool {
-	log.Printf("REPORTING HEALTH")
 	return true
 }
 
@@ -93,7 +92,6 @@ func (b *GithubBridge) visitURL(urlv string) (string, error) {
 		url = url + "?access_token=" + b.accessCode
 	}
 
-	log.Printf("Visiting: %v", url)
 	resp, err := b.getter.Get(url)
 	if err != nil {
 		return "", err
@@ -161,6 +159,7 @@ func (b *GithubBridge) GetIssueLocal(owner string, project string, number int) (
 		panic(err)
 	}
 
+	log.Printf("HERE: (%v %v) %v", data["state"].(string), data["state"].(string) == "open", data)
 	issue := &pbgh.Issue{Number: int32(number), Service: project, Title: data["title"].(string), Body: data["body"].(string)}
 	if data["state"].(string) == "open" {
 		issue.State = pbgh.Issue_OPEN
@@ -168,6 +167,7 @@ func (b *GithubBridge) GetIssueLocal(owner string, project string, number int) (
 		issue.State = pbgh.Issue_CLOSED
 	}
 
+	log.Printf("ISSUE = %v", issue)
 	return issue, nil
 }
 
@@ -205,10 +205,7 @@ func (b *GithubBridge) GetIssues(project string) pb.CardList {
 			card.Text = issueTitle + "\n" + issueText + "\n\n" + issueSource
 			card.Hash = "githubissue-" + issueSource
 			card.Channel = pb.Card_ISSUES
-			log.Printf("CHECKING %v %v %v (%v)", time.Now(), date, time.Now().Sub(date), issueTitle)
-			log.Printf("FROM %v", issueMap)
 			card.Priority = int32(time.Now().Sub(date)/time.Second) + hash(card.Text)%1000
-			log.Printf("CHECKING PR %v", card.Priority)
 			cardlist.Cards = append(cardlist.Cards, card)
 		}
 	}
@@ -257,15 +254,12 @@ func (b GithubBridge) passover() error {
 	}
 
 	for _, card := range cards.Cards {
-		log.Printf("CARD = %v", card.Hash)
 		if strings.HasPrefix(card.Hash, "addgithubissue") {
 			b.AddIssueLocal("brotherlogic", strings.Split(card.Hash, "-")[2], strings.Split(card.Text, "|")[0], strings.Split(card.Text, "|")[1])
 		}
 	}
 
-	log.Printf("Deleting cards: %v", &pb.DeleteRequest{HashPrefix: "addgithubissue"})
 	_, err = client.DeleteCards(context.Background(), &pb.DeleteRequest{HashPrefix: "addgithubissue"})
-	log.Printf("HERE %v", err)
 	if err != nil {
 		return err
 	}
@@ -275,7 +269,6 @@ func (b GithubBridge) passover() error {
 	issues := pb.CardList{}
 	log.Printf("Getting projects")
 	for _, project := range projects {
-		log.Printf("Getting issues for %v", project.Name)
 		tempIssues := b.GetIssues("brotherlogic/" + project.Name)
 		issues.Cards = append(issues.Cards, tempIssues.Cards...)
 	}
