@@ -230,9 +230,11 @@ func getIP(servername string) (string, int) {
 func (b GithubBridge) RunPass() {
 	for b.serving {
 		time.Sleep(wait)
-		err := b.passover()
-		if err != nil {
-			log.Printf("FAILED to run: %v", err)
+		if b.GoServer.Registry.Master {
+			err := b.passover()
+			if err != nil {
+				log.Printf("FAILED to run: %v", err)
+			}
 		}
 	}
 
