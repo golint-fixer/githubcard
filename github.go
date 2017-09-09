@@ -17,7 +17,6 @@ import (
 	"google.golang.org/grpc"
 
 	pb "github.com/brotherlogic/cardserver/card"
-	pbdi "github.com/brotherlogic/discovery/proto"
 	pbgh "github.com/brotherlogic/githubcard/proto"
 	"github.com/brotherlogic/goserver"
 )
@@ -213,19 +212,6 @@ func (b *GithubBridge) GetIssues(project string) pb.CardList {
 	return cardlist
 }
 
-func getIP(servername string) (string, int) {
-	conn, _ := grpc.Dial("192.168.86.64:50055", grpc.WithInsecure())
-	defer conn.Close()
-
-	registry := pbdi.NewDiscoveryServiceClient(conn)
-	entry := pbdi.RegistryEntry{Name: servername}
-	r, err := registry.Discover(context.Background(), &entry)
-	if err != nil {
-		return "", -1
-	}
-	return r.Ip, int(r.Port)
-}
-
 // RunPass runs a pass over
 func (b GithubBridge) RunPass() {
 	for b.serving {
@@ -243,7 +229,7 @@ func (b GithubBridge) RunPass() {
 
 func (b GithubBridge) passover() error {
 	log.Printf("RUNNING PASSOVER")
-	ip, port := getIP("cardserver")
+	ip, port := b.GetIP("cardserver")
 	conn, err := grpc.Dial(ip+":"+strconv.Itoa(port), grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("Error here: %v", err)
@@ -295,7 +281,7 @@ func main() {
 	flag.Parse()
 
 	b := Init()
-	b.GoServer.KSclient = *keystoreclient.GetClient(getIP)
+	b.GoServer.KSclient = *keystoreclient.GetClient(b.GetIP)
 
 	//Turn off logging
 	if *quiet {
