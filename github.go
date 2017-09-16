@@ -155,7 +155,7 @@ func (b *GithubBridge) GetIssueLocal(owner string, project string, number int) (
 	var data map[string]interface{}
 	err = json.Unmarshal([]byte(body), &data)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	log.Printf("HERE: (%v %v) %v", data["state"].(string), data["state"].(string) == "open", data)
