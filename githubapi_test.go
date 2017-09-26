@@ -15,6 +15,7 @@ func InitTest() *GithubBridge {
 	s := Init()
 	s.getter = testFileGetter{}
 	s.accessCode = "token"
+	s.SkipLog = true
 	return s
 }
 
