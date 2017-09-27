@@ -124,7 +124,7 @@ func (b *GithubBridge) GetProjects() []Project {
 
 // AddIssueLocal adds an issue
 func (b *GithubBridge) AddIssueLocal(owner, repo, title, body string) ([]byte, error) {
-	data := "{\"title\": \"" + title + "\", \"body\": \"" + body + "\", \"assignee\": \"" + owner + "\"}"
+	data := "{\"title\": \"" + title + "\", \"body\": \"" + strings.Replace(body, "\"", "\\\"", -1) + "\", \"assignee\": \"" + owner + "\"}"
 	urlv := "https://api.github.com/repos/" + owner + "/" + repo + "/issues"
 	resp, err := b.postURL(urlv, data)
 	if err != nil {
