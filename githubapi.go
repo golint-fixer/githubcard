@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 
 	"golang.org/x/net/context"
 
@@ -15,10 +16,16 @@ type addResponse struct {
 //AddIssue adds an issue to github
 func (g *GithubBridge) AddIssue(ctx context.Context, in *pb.Issue) (*pb.Issue, error) {
 	b, err := g.AddIssueLocal("brotherlogic", in.GetService(), in.GetTitle(), in.GetBody())
+	if err != nil {
+		return nil, err
+	}
 	r := &addResponse{}
-	json.Unmarshal(b, &r)
+	err2 := json.Unmarshal(b, &r)
+	if err2 != nil {
+		return nil, err2
+	}
 	in.Number = r.Number
-	return in, err
+	return in, errors.New(string(b))
 }
 
 //Get gets an issue from github
