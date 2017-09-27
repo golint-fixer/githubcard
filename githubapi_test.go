@@ -60,6 +60,20 @@ func TestAddIssue(t *testing.T) {
 	}
 }
 
+func TestSubmitComplexIssue(t *testing.T) {
+	issue := &pb.Issue{Title: "CRASH REPORT", Service: "crasher", Body: "2017/09/26 17:48:18 ip:\"192.168.86.28\" port:50057 name:\"crasher\" identifier:\"framethree\"  is Servingpanic: Whoopsiegoroutine 41 [running]:panic(0x3b13f8, 0x109643f8)\t/usr/lib/go-1.7/src/runtime/panic.go:500 +0x33cmain.crash()\t/home/simon/gobuild/src/github.com/brotherlogic/crasher/Crasher.go:36 +0x6ccreated by github.com/brotherlogic/goserver.(*GoServer).Serve\t/home/simon/gobuild/src/github.com/brotherlogic/goserver/goserverapi.go:126+0x254"}
+	s := InitTest()
+	ib, err := s.AddIssue(context.Background(), issue)
+
+	if err != nil {
+		t.Fatalf("Error in adding issue: %v", err)
+	}
+
+	if ib.Number != 418 {
+		t.Errorf("Issue has not been added: %v", ib)
+	}
+}
+
 func TestGetIssue(t *testing.T) {
 	s := InitTest()
 	ib, err := s.Get(context.Background(), &pb.Issue{Service: "Home", Number: 12})
