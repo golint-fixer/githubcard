@@ -234,13 +234,15 @@ func (b GithubBridge) passover() error {
 	ip, port := b.GetIP("cardserver")
 	conn, err := grpc.Dial(ip+":"+strconv.Itoa(port), grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("Error here: %v", err)
+		log.Printf("Error here: %v", err)
+		return err
 	}
 	defer conn.Close()
 	client := pb.NewCardServiceClient(conn)
 	cards, err := client.GetCards(context.Background(), &pb.Empty{})
 	if err != nil {
-		log.Fatalf("Error here: %v", (err))
+		log.Printf("Error here: %v", (err))
+		return err
 	}
 
 	for _, card := range cards.Cards {
