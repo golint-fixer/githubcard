@@ -134,6 +134,7 @@ func (b *GithubBridge) AddIssueLocal(owner, repo, title, body string) ([]byte, e
 	defer resp.Body.Close()
 	rb, _ := ioutil.ReadAll(resp.Body)
 
+	b.Log("From " + data)
 	b.Log("Read " + string(rb))
 
 	return rb, nil
