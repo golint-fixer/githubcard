@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"hash/fnv"
 	"io/ioutil"
 	"log"
@@ -124,7 +125,7 @@ func (b *GithubBridge) GetProjects() []Project {
 
 // AddIssueLocal adds an issue
 func (b *GithubBridge) AddIssueLocal(owner, repo, title, body string) ([]byte, error) {
-	data := "{\"title\": \"" + title + "\", \"body\": \"" + strings.Replace(body, "\"", "\\\"", -1) + "\", \"assignee\": \"" + owner + "\"}"
+	data := fmt.Sprintf("{\"title\": \"%s\", \"body\": \"%s\", \"assignee\": \"%s\"}", title, body, owner)
 	urlv := "https://api.github.com/repos/" + owner + "/" + repo + "/issues"
 	resp, err := b.postURL(urlv, data)
 	if err != nil {
@@ -134,7 +135,8 @@ func (b *GithubBridge) AddIssueLocal(owner, repo, title, body string) ([]byte, e
 	defer resp.Body.Close()
 	rb, _ := ioutil.ReadAll(resp.Body)
 
-	b.Log("From " + data)
+	log.Printf("SOURCE data: " + data)
+	b.Log("From " + data + " and " + urlv)
 	b.Log("Read " + string(rb))
 
 	return rb, nil
