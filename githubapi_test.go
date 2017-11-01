@@ -55,8 +55,8 @@ func TestAddIssue(t *testing.T) {
 		t.Fatalf("Error in adding issue: %v", err)
 	}
 
-	if ib.Number != 418 {
-		t.Errorf("Issue has not been added: %v", ib)
+	if ib.Number != 494 {
+		t.Errorf("Issue has not been added: %v", ib.Number)
 	}
 }
 
@@ -69,7 +69,7 @@ func TestSubmitComplexIssue(t *testing.T) {
 		t.Fatalf("Error in adding issue: %v", err)
 	}
 
-	if ib.Number != 418 {
+	if ib.Number != 12 {
 		t.Errorf("Issue has not been added: %v", ib)
 	}
 }
