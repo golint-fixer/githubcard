@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 
 	"golang.org/x/net/context"
 
@@ -25,7 +25,8 @@ func (g *GithubBridge) AddIssue(ctx context.Context, in *pb.Issue) (*pb.Issue, e
 		return nil, err2
 	}
 	in.Number = r.Number
-	return in, errors.New(string(b))
+	g.Log(fmt.Sprintf("RECEIVED: %v", string(b)))
+	return in, nil
 }
 
 //Get gets an issue from github
