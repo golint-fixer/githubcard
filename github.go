@@ -13,13 +13,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/brotherlogic/goserver"
 	"github.com/brotherlogic/keystore/client"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
 	pb "github.com/brotherlogic/cardserver/card"
 	pbgh "github.com/brotherlogic/githubcard/proto"
-	"github.com/brotherlogic/goserver"
+	pbgs "github.com/brotherlogic/goserver/proto"
 )
 
 // GithubBridge the bridge to the github API
@@ -64,6 +65,11 @@ func (b GithubBridge) ReportHealth() bool {
 
 // Mote promotes this server
 func (b GithubBridge) Mote(master bool) error {
+	return nil
+}
+
+// GetState gets the state of the server
+func (b GithubBridge) GetState() []*pbgs.State {
 	return nil
 }
 
@@ -129,6 +135,7 @@ func (b *GithubBridge) AddIssueLocal(owner, repo, title, body string) ([]byte, e
 	urlv := "https://api.github.com/repos/" + owner + "/" + repo + "/issues"
 	resp, err := b.postURL(urlv, data)
 	if err != nil {
+		b.Log(fmt.Sprintf("Writing issues has failed: %v", err))
 		return nil, err
 	}
 

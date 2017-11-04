@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -19,13 +20,26 @@ func InitTest() *GithubBridge {
 	return s
 }
 
-type testFileGetter struct{}
+type failGetter struct{}
+
+func (httpGetter failGetter) Post(url string, data string) (*http.Response, error) {
+	return nil, errors.New("Built to Fail")
+}
+
+func (httpGetter failGetter) Get(url string) (*http.Response, error) {
+	return nil, errors.New("Built to Fail")
+}
+
+type testFileGetter struct{ jsonBreak bool }
 
 func (httpGetter testFileGetter) Post(url string, data string) (*http.Response, error) {
 	log.Printf("url  %v", url)
 	log.Printf("data %v", data)
 	response := &http.Response{}
 	strippedURL := strings.Replace(strings.Replace(url[22:], "?", "_", -1), "&", "_", -1)
+	if httpGetter.jsonBreak {
+		strippedURL = strings.Replace(strippedURL, "token", "broke", -1)
+	}
 	blah, err := os.Open("testdata" + strippedURL)
 	if err != nil {
 		log.Printf("Error opening test file %v", err)
@@ -57,6 +71,30 @@ func TestAddIssue(t *testing.T) {
 
 	if ib.Number != 494 {
 		t.Errorf("Issue has not been added: %v", ib.Number)
+	}
+}
+
+func TestAddIssueFail(t *testing.T) {
+	issue := &pb.Issue{Title: "Testing", Body: "This is a test issue", Service: "Home"}
+
+	s := InitTest()
+	s.getter = failGetter{}
+	_, err := s.AddIssue(context.Background(), issue)
+
+	if err == nil {
+		t.Fatalf("No Error returned")
+	}
+}
+
+func TestAddIssueFJSONail(t *testing.T) {
+	issue := &pb.Issue{Title: "Testing", Body: "This is a test issue", Service: "Home"}
+
+	s := InitTest()
+	s.getter = testFileGetter{jsonBreak: true}
+	_, err := s.AddIssue(context.Background(), issue)
+
+	if err == nil {
+		t.Fatalf("No Error returned")
 	}
 }
 
