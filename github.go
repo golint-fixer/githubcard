@@ -20,6 +20,7 @@ import (
 	pb "github.com/brotherlogic/cardserver/card"
 	pbgh "github.com/brotherlogic/githubcard/proto"
 	"github.com/brotherlogic/goserver"
+	pbgs "github.com/brotherlogic/goserver/proto"
 )
 
 // GithubBridge the bridge to the github API
@@ -65,6 +66,11 @@ func (b GithubBridge) ReportHealth() bool {
 // Mote promotes this server
 func (b GithubBridge) Mote(master bool) error {
 	return nil
+}
+
+// GetState gets the state of the server
+func (b GithubBridge) GetState() []*pbgs.State {
+	return []*pbgs.State{}
 }
 
 const (
