@@ -13,13 +13,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/brotherlogic/goserver"
 	"github.com/brotherlogic/keystore/client"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
 	pb "github.com/brotherlogic/cardserver/card"
 	pbgh "github.com/brotherlogic/githubcard/proto"
-	"github.com/brotherlogic/goserver"
 	pbgs "github.com/brotherlogic/goserver/proto"
 )
 
@@ -135,6 +135,7 @@ func (b *GithubBridge) AddIssueLocal(owner, repo, title, body string) ([]byte, e
 	urlv := "https://api.github.com/repos/" + owner + "/" + repo + "/issues"
 	resp, err := b.postURL(urlv, data)
 	if err != nil {
+		b.Log(fmt.Sprintf("Writing issues has failed: %v", err))
 		return nil, err
 	}
 
