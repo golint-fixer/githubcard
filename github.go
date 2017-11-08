@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"hash/fnv"
@@ -129,8 +130,37 @@ func (b *GithubBridge) GetProjects() []Project {
 	return projects
 }
 
+func (b *GithubBridge) issueExists(title string) (*pbgh.Issue, error) {
+	urlv := "https://api.github.com/user/issues"
+	body, err := b.visitURL(urlv)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var data []interface{}
+	err = json.Unmarshal([]byte(body), &data)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, d := range data {
+		dp := d.(map[string]interface{})
+		if dp["title"].(string) == title {
+			return &pbgh.Issue{Title: title}, nil
+		}
+	}
+
+	return nil, nil
+}
+
 // AddIssueLocal adds an issue
 func (b *GithubBridge) AddIssueLocal(owner, repo, title, body string) ([]byte, error) {
+	issue, _ := b.issueExists(title)
+	if issue != nil {
+		return nil, errors.New("Issue already exists")
+	}
+
 	data := fmt.Sprintf("{\"title\": \"%s\", \"body\": \"%s\", \"assignee\": \"%s\"}", title, strings.Replace(strings.Replace(body, "\t", " ", -1), "\n", " ", -1), owner)
 	urlv := "https://api.github.com/repos/" + owner + "/" + repo + "/issues"
 	resp, err := b.postURL(urlv, data)
