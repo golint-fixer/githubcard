@@ -13,13 +13,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/brotherlogic/goserver"
 	"github.com/brotherlogic/keystore/client"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
 	pb "github.com/brotherlogic/cardserver/card"
 	pbgh "github.com/brotherlogic/githubcard/proto"
-	"github.com/brotherlogic/goserver"
+	pbgs "github.com/brotherlogic/goserver/proto"
 )
 
 // GithubBridge the bridge to the github API
@@ -53,8 +54,8 @@ func Init() *GithubBridge {
 }
 
 // DoRegister does RPC registration
-func (b GithubBridge) DoRegister(server *grpc.Server) {
-	pbgh.RegisterGithubServer(server, &b)
+func (b *GithubBridge) DoRegister(server *grpc.Server) {
+	pbgh.RegisterGithubServer(server, b)
 }
 
 // ReportHealth alerts if we're not healthy
@@ -65,6 +66,11 @@ func (b GithubBridge) ReportHealth() bool {
 // Mote promotes this server
 func (b GithubBridge) Mote(master bool) error {
 	return nil
+}
+
+// GetState gets the state of the server
+func (b GithubBridge) GetState() []*pbgs.State {
+	return []*pbgs.State{}
 }
 
 const (
@@ -79,7 +85,7 @@ func (b *GithubBridge) postURL(urlv string, data string) (*http.Response, error)
 		url = url + "?access_token=" + b.accessCode
 	}
 
-	log.Printf("Posting: %v and %v", url, data)
+	b.Log(fmt.Sprintf("POST: %v", url))
 	return b.getter.Post(url, data)
 }
 
@@ -92,6 +98,7 @@ func (b *GithubBridge) visitURL(urlv string) (string, error) {
 		url = url + "?access_token=" + b.accessCode
 	}
 
+	b.Log(fmt.Sprintf("GET: %v", url))
 	resp, err := b.getter.Get(url)
 	if err != nil {
 		return "", err
