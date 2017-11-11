@@ -74,7 +74,7 @@ func (b GithubBridge) GetState() []*pbgs.State {
 }
 
 const (
-	wait = time.Minute // Wait one minute between runs
+	wait = 5 * time.Minute // Wait five minute between runs
 )
 
 func (b *GithubBridge) postURL(urlv string, data string) (*http.Response, error) {
