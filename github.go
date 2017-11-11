@@ -55,8 +55,8 @@ func Init() *GithubBridge {
 }
 
 // DoRegister does RPC registration
-func (b GithubBridge) DoRegister(server *grpc.Server) {
-	pbgh.RegisterGithubServer(server, &b)
+func (b *GithubBridge) DoRegister(server *grpc.Server) {
+	pbgh.RegisterGithubServer(server, b)
 }
 
 // ReportHealth alerts if we're not healthy
@@ -75,7 +75,7 @@ func (b GithubBridge) GetState() []*pbgs.State {
 }
 
 const (
-	wait = time.Minute // Wait one minute between runs
+	wait = 5 * time.Minute // Wait five minute between runs
 )
 
 func (b *GithubBridge) postURL(urlv string, data string) (*http.Response, error) {
@@ -86,7 +86,7 @@ func (b *GithubBridge) postURL(urlv string, data string) (*http.Response, error)
 		url = url + "?access_token=" + b.accessCode
 	}
 
-	log.Printf("Posting: %v and %v", url, data)
+	b.Log(fmt.Sprintf("POST: %v", url))
 	return b.getter.Post(url, data)
 }
 
@@ -99,6 +99,7 @@ func (b *GithubBridge) visitURL(urlv string) (string, error) {
 		url = url + "?access_token=" + b.accessCode
 	}
 
+	b.Log(fmt.Sprintf("GET: %v", url))
 	resp, err := b.getter.Get(url)
 	if err != nil {
 		return "", err
