@@ -120,17 +120,6 @@ type Project struct {
 	Name string
 }
 
-// GetProjects from github
-func (b *GithubBridge) GetProjects() []Project {
-	list, err := b.visitURL("https://api.github.com/user/repos?per_page=100")
-	var projects []Project
-	if err != nil {
-		return projects
-	}
-	json.Unmarshal([]byte(list), &projects)
-	return projects
-}
-
 func (b *GithubBridge) issueExists(title string) (*pbgh.Issue, error) {
 	urlv := "https://api.github.com/user/issues"
 	body, err := b.visitURL(urlv)
@@ -216,9 +205,9 @@ func (b *GithubBridge) GetIssueLocal(owner string, project string, number int) (
 }
 
 // GetIssues Gets github issues for a given project
-func (b *GithubBridge) GetIssues(project string) pb.CardList {
+func (b *GithubBridge) GetIssues() pb.CardList {
 	cardlist := pb.CardList{}
-	urlv := "https://api.github.com/repos/" + project + "/issues?state=open"
+	urlv := "https://api.github.com/user/issues?state=open"
 	body, err := b.visitURL(urlv)
 
 	if err != nil {
@@ -300,13 +289,7 @@ func (b GithubBridge) passover() error {
 	}
 
 	log.Printf("Doing project call")
-	projects := b.GetProjects()
-	issues := pb.CardList{}
-	log.Printf("Getting projects")
-	for _, project := range projects {
-		tempIssues := b.GetIssues("brotherlogic/" + project.Name)
-		issues.Cards = append(issues.Cards, tempIssues.Cards...)
-	}
+	issues := b.GetIssues()
 
 	_, err = client.DeleteCards(context.Background(), &pb.DeleteRequest{HashPrefix: "githubissue"})
 	if err != nil {
