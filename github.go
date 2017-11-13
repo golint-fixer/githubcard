@@ -342,7 +342,7 @@ func main() {
 	if len(*token) > 0 {
 		b.Save("/github.com/brotherlogic/githubcard/token", &pbgh.Token{Token: *token})
 	} else {
-		m, err := b.Read("/github.com/brotherlogic/githubcard/token", &pbgh.Token{})
+		m, _, err := b.Read("/github.com/brotherlogic/githubcard/token", &pbgh.Token{})
 		if err != nil {
 			log.Printf("Failed to read token: %v", err)
 		} else {
