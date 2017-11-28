@@ -207,7 +207,7 @@ func (b *GithubBridge) GetIssueLocal(owner string, project string, number int) (
 // GetIssues Gets github issues for a given project
 func (b *GithubBridge) GetIssues() pb.CardList {
 	cardlist := pb.CardList{}
-	urlv := "https://api.github.com/user/issues?state=open"
+	urlv := "https://api.github.com/issues?state=open&filter=all"
 	body, err := b.visitURL(urlv)
 
 	if err != nil {
