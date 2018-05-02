@@ -245,7 +245,7 @@ func (b *GithubBridge) GetIssues() pb.CardList {
 }
 
 // RunPass runs a pass over
-func (b GithubBridge) RunPass() {
+func (b GithubBridge) RunPass(ctx context.Context) {
 	for b.serving {
 		time.Sleep(wait)
 		if b.GoServer.Registry.Master {
