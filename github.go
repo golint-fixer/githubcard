@@ -86,7 +86,6 @@ func (b *GithubBridge) postURL(urlv string, data string) (*http.Response, error)
 		url = url + "?access_token=" + b.accessCode
 	}
 
-	b.Log(fmt.Sprintf("POST: %v", url))
 	return b.getter.Post(url, data)
 }
 
@@ -99,7 +98,6 @@ func (b *GithubBridge) visitURL(urlv string) (string, error) {
 		url = url + "?access_token=" + b.accessCode
 	}
 
-	b.Log(fmt.Sprintf("GET: %v", url))
 	resp, err := b.getter.Get(url)
 	if err != nil {
 		return "", err
@@ -155,7 +153,6 @@ func (b *GithubBridge) AddIssueLocal(owner, repo, title, body string) ([]byte, e
 	urlv := "https://api.github.com/repos/" + owner + "/" + repo + "/issues"
 	resp, err := b.postURL(urlv, data)
 	if err != nil {
-		b.Log(fmt.Sprintf("Writing issues has failed: %v", err))
 		return nil, err
 	}
 
@@ -163,8 +160,6 @@ func (b *GithubBridge) AddIssueLocal(owner, repo, title, body string) ([]byte, e
 	rb, _ := ioutil.ReadAll(resp.Body)
 
 	log.Printf("SOURCE data: " + data)
-	b.Log(fmt.Sprintf("From %s and %s", data, urlv))
-	b.Log("Read " + string(rb))
 
 	return rb, nil
 }
