@@ -1,5 +1,10 @@
 mkdir -p testdata/repos/brotherlogic/Home/issues/
 mkdir -p testdata/repos/brotherlogic/crasher
+mkdir -p testdata/user/
+
+sleep 1
+curl -H "Content-Type: application/json" --user-agent "GithubAgent" "https://api.github.com/user/issues?access_token=$1"  > testdata/user/issues_access_token=token
+exit
 
 sleep 1
 curl -X POST -H "Content-Type: application/json" --user-agent "GithubAgent" "https://api.github.com/repos/brotherlogic/crasher/issues?access_token=$1" -d '{"title": "CRASH REPORT", "body": "Starting Scan\n\n\n\npanic: rpc error: code = Unavailable desc = grpc: the connection is unavailablegoroutine 9 [running]:panic(0x3ddea0, 0x10bd8d20)\t/usr/lib/go-1.7/src/runtime/panic.go:500 +0x33cmain.Server.processCard(0x1090a680, 0x101, 0x0)\t/home/simon/gobuild/src/github.com/brotherlogic/recordgetter/recordget.go:242 +0x2acmain.Server.runSingle(0x1090a680, 0x101)\t/home/simon/gobuild/src/github.com/brotherlogic/recordgetter/recordget.go:300 +0x6cmain.Server.GetRecords(0x1090a680, 0x101)\t/home/simon/gobuild/src/github.com/brotherlogic/recordgetter/recordget.go:292 +0x100main.(Server).GetRecords-fm()\t/home/simon/gobuild/src/github.com/brotherlogic/recordgetter/recordget.go:373 +0x38created by github.com/brotherlogic/goserver.(*GoServer).Serve\t/home/simon/gobuild/src/github.com/brotherlogic/goserver/goserverapi.go:126 +0x254Finishing Scan\nFound Dead When Running", "assignee": "brotherlogic"}' > testdata/repos/brotherlogic/crasher/issues_access_token=token
