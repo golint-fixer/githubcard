@@ -144,7 +144,10 @@ func (b *GithubBridge) issueExists(title string) (*pbgh.Issue, error) {
 
 // AddIssueLocal adds an issue
 func (b *GithubBridge) AddIssueLocal(owner, repo, title, body string) ([]byte, error) {
-	issue, _ := b.issueExists(title)
+	issue, err := b.issueExists(title)
+	if err != nil {
+		return nil, err
+	}
 	if issue != nil {
 		return nil, errors.New("Issue already exists")
 	}
