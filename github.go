@@ -162,7 +162,9 @@ func (b *GithubBridge) AddIssueLocal(owner, repo, title, body string) ([]byte, e
 	defer resp.Body.Close()
 	rb, _ := ioutil.ReadAll(resp.Body)
 
-	log.Printf("SOURCE data: " + data)
+	if resp.StatusCode != 200 {
+		b.Log(fmt.Sprintf("%v returned from github: %v", resp.StatusCode, string(rb)))
+	}
 
 	return rb, nil
 }
