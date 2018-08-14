@@ -152,6 +152,12 @@ func (b *GithubBridge) issueExists(title string) (*pbgh.Issue, error) {
 	return nil, nil
 }
 
+type jpayload struct {
+	title    string
+	body     string
+	assignee string
+}
+
 // AddIssueLocal adds an issue
 func (b *GithubBridge) AddIssueLocal(owner, repo, title, body string) ([]byte, error) {
 	b.attempts++
@@ -163,13 +169,14 @@ func (b *GithubBridge) AddIssueLocal(owner, repo, title, body string) ([]byte, e
 		return nil, errors.New("Issue already exists")
 	}
 
-	bytes, err := json.Marshal(body)
+	payload := jpayload{title: title, body: body, assignee: owner}
+	bytes, err := json.Marshal(payload)
 	if err != nil {
 		return nil, err
 	}
-	data := fmt.Sprintf("{\"title\": \"%s\", \"body\": \"%s\", \"assignee\": \"%s\"}", title, string(bytes), owner)
+
 	urlv := "https://api.github.com/repos/" + owner + "/" + repo + "/issues"
-	resp, err := b.postURL(urlv, data)
+	resp, err := b.postURL(urlv, string(bytes))
 	if err != nil {
 		return nil, err
 	}
