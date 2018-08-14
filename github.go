@@ -30,6 +30,8 @@ type GithubBridge struct {
 	accessCode string
 	serving    bool
 	getter     httpGetter
+	attempts   int
+	fails      int
 }
 
 type httpGetter interface {
@@ -49,7 +51,12 @@ func (httpGetter prodHTTPGetter) Get(url string) (*http.Response, error) {
 
 //Init a record getter
 func Init() *GithubBridge {
-	s := &GithubBridge{GoServer: &goserver.GoServer{}, serving: true, getter: prodHTTPGetter{}}
+	s := &GithubBridge{
+		GoServer: &goserver.GoServer{},
+		serving:  true,
+		getter:   prodHTTPGetter{},
+		attempts: 0,
+		fails:    0}
 	s.Register = s
 	return s
 }
@@ -71,7 +78,10 @@ func (b GithubBridge) Mote(ctx context.Context, master bool) error {
 
 // GetState gets the state of the server
 func (b GithubBridge) GetState() []*pbgs.State {
-	return []*pbgs.State{}
+	return []*pbgs.State{
+		&pbgs.State{Key: "attempts", Value: int64(b.attempts)},
+		&pbgs.State{Key: "fails", Value: int64(b.fails)},
+	}
 }
 
 const (
@@ -144,6 +154,7 @@ func (b *GithubBridge) issueExists(title string) (*pbgh.Issue, error) {
 
 // AddIssueLocal adds an issue
 func (b *GithubBridge) AddIssueLocal(owner, repo, title, body string) ([]byte, error) {
+	b.attempts++
 	issue, err := b.issueExists(title)
 	if err != nil {
 		return nil, err
@@ -152,7 +163,11 @@ func (b *GithubBridge) AddIssueLocal(owner, repo, title, body string) ([]byte, e
 		return nil, errors.New("Issue already exists")
 	}
 
-	data := fmt.Sprintf("{\"title\": \"%s\", \"body\": \"%s\", \"assignee\": \"%s\"}", title, strings.Replace(body, "\t", " ", -1), owner)
+	bytes, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	data := fmt.Sprintf("{\"title\": \"%s\", \"body\": \"%s\", \"assignee\": \"%s\"}", title, string(bytes), owner)
 	urlv := "https://api.github.com/repos/" + owner + "/" + repo + "/issues"
 	resp, err := b.postURL(urlv, data)
 	if err != nil {
@@ -163,7 +178,8 @@ func (b *GithubBridge) AddIssueLocal(owner, repo, title, body string) ([]byte, e
 	rb, _ := ioutil.ReadAll(resp.Body)
 
 	if resp.StatusCode != 200 && resp.StatusCode != 201 {
-		b.Log(fmt.Sprintf("%v returned from github: %v -> %v", resp.StatusCode, string(rb), body))
+		b.fails++
+		b.Log(fmt.Sprintf("%v returned from github: %v -> %v", resp.StatusCode, string(rb), string(bytes)))
 	}
 
 	return rb, nil
