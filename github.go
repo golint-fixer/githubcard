@@ -152,6 +152,7 @@ func (b *GithubBridge) issueExists(title string) (*pbgh.Issue, error) {
 	return nil, nil
 }
 
+// Payload for sending to github
 type Payload struct {
 	Title    string `json:"title"`
 	Body     string `json:"body"`
