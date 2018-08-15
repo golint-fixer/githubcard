@@ -152,7 +152,7 @@ func (b *GithubBridge) issueExists(title string) (*pbgh.Issue, error) {
 	return nil, nil
 }
 
-type jpayload struct {
+type Payload struct {
 	Title    string `json:"title"`
 	Body     string `json:"body"`
 	Assignee string `json:assignee"`
@@ -169,11 +169,13 @@ func (b *GithubBridge) AddIssueLocal(owner, repo, title, body string) ([]byte, e
 		return nil, errors.New("Issue already exists")
 	}
 
-	payload := jpayload{Title: title, Body: body, Assignee: owner}
+	payload := Payload{Title: title, Body: body, Assignee: owner}
 	bytes, err := json.Marshal(payload)
 	if err != nil {
 		return nil, err
 	}
+
+	b.Log(fmt.Sprintf("%v -> %v", payload, string(bytes)))
 
 	urlv := "https://api.github.com/repos/" + owner + "/" + repo + "/issues"
 	resp, err := b.postURL(urlv, string(bytes))
