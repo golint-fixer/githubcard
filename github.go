@@ -108,6 +108,7 @@ func (b *GithubBridge) visitURL(urlv string) (string, error) {
 		url = url + "?access_token=" + b.accessCode
 	}
 
+	b.Log(fmt.Sprintf("VISIT %v", url))
 	resp, err := b.getter.Get(url)
 	if err != nil {
 		return "", err
