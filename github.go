@@ -159,7 +159,7 @@ func (b *GithubBridge) issueExists(title string) (*pbgh.Issue, error) {
 type Payload struct {
 	Title    string `json:"title"`
 	Body     string `json:"body"`
-	Assignee string `json:assignee"`
+	Assignee string `json:"assignee"`
 }
 
 // AddIssueLocal adds an issue
