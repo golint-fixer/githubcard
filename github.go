@@ -32,6 +32,7 @@ type GithubBridge struct {
 	getter     httpGetter
 	attempts   int
 	fails      int
+	added      map[string]time.Time
 }
 
 type httpGetter interface {
@@ -56,7 +57,9 @@ func Init() *GithubBridge {
 		serving:  true,
 		getter:   prodHTTPGetter{},
 		attempts: 0,
-		fails:    0}
+		fails:    0,
+		added:    make(map[string]time.Time),
+	}
 	s.Register = s
 	return s
 }
@@ -81,6 +84,7 @@ func (b GithubBridge) GetState() []*pbgs.State {
 	return []*pbgs.State{
 		&pbgs.State{Key: "attempts", Value: int64(b.attempts)},
 		&pbgs.State{Key: "fails", Value: int64(b.fails)},
+		&pbgs.State{Key: "added", Text: fmt.Sprintf("%v", b.added)},
 	}
 }
 
@@ -332,6 +336,14 @@ func (b GithubBridge) passover() error {
 	return nil
 }
 
+func (b *GithubBridge) cleanAdded(ctx context.Context) {
+	for k, t := range b.added {
+		if time.Now().Sub(t) > time.Minute {
+			delete(b.added, k)
+		}
+	}
+}
+
 func main() {
 	var quiet = flag.Bool("quiet", true, "Show all output")
 	var token = flag.String("token", "", "The token to use to auth")
@@ -359,6 +371,7 @@ func main() {
 			log.Printf("GOT TOKEN: %v", m)
 			b.accessCode = m.(*pbgh.Token).GetToken()
 			b.RegisterServingTask(b.RunPass)
+			b.RegisterRepeatingTask(b.cleanAdded, time.Minute)
 			b.Serve()
 		}
 	}
