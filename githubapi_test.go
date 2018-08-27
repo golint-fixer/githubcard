@@ -74,6 +74,26 @@ func TestAddIssue(t *testing.T) {
 	}
 }
 
+func TestAddDoubleIssue(t *testing.T) {
+	issue := &pb.Issue{Title: "Testing", Body: "This is a test issue", Service: "Home"}
+
+	s := InitTest()
+	ib, err := s.AddIssue(context.Background(), issue)
+
+	if err != nil {
+		t.Fatalf("Error in adding issue: %v", err)
+	}
+
+	if ib.Number != 494 {
+		t.Errorf("Issue has not been added: %v", ib.Number)
+	}
+
+	_, err = s.AddIssue(context.Background(), issue)
+	if err == nil {
+		t.Errorf("Double add has not failed")
+	}
+}
+
 func TestAddIssueFail(t *testing.T) {
 	issue := &pb.Issue{Title: "Testing", Body: "This is a test issue", Service: "Home"}
 

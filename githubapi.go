@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"golang.org/x/net/context"
@@ -15,6 +16,11 @@ type addResponse struct {
 
 //AddIssue adds an issue to github
 func (g *GithubBridge) AddIssue(ctx context.Context, in *pb.Issue) (*pb.Issue, error) {
+	//Don't double add issues
+	if v, ok := g.added[in.GetTitle()]; ok {
+		return nil, fmt.Errorf("Unable to add this issue - recently added (%v)", v)
+	}
+
 	g.added[in.GetTitle()] = time.Now()
 	b, err := g.AddIssueLocal("brotherlogic", in.GetService(), in.GetTitle(), in.GetBody())
 	if err != nil {
