@@ -74,6 +74,19 @@ func TestAddIssue(t *testing.T) {
 	}
 }
 
+func TestAddIssueToFakeService(t *testing.T) {
+	issue := &pb.Issue{Title: "Testing", Body: "This is a test issue", Service: "MadeUpService"}
+
+	s := InitTest()
+	_, err := s.AddIssue(context.Background(), issue)
+
+	if err == nil {
+		t.Fatalf("Error not added")
+	}
+
+	log.Printf("Error is %v", err)
+}
+
 func TestAddDoubleIssue(t *testing.T) {
 	issue := &pb.Issue{Title: "Testing", Body: "This is a test issue", Service: "Home"}
 
