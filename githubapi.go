@@ -11,7 +11,8 @@ import (
 )
 
 type addResponse struct {
-	Number int32
+	Number  int32
+	Message string
 }
 
 //AddIssue adds an issue to github
@@ -31,6 +32,12 @@ func (g *GithubBridge) AddIssue(ctx context.Context, in *pb.Issue) (*pb.Issue, e
 	if err2 != nil {
 		return nil, err2
 	}
+
+	if r.Message == "Not Found" {
+		g.AddIssue(ctx, &pb.Issue{Service: "githubcard", Title: "Add Failure", Body: fmt.Sprintf("Couldn't add issue for %v", in.Service)})
+		return nil, fmt.Errorf("Error adding issue for service %v", in.Service)
+	}
+
 	in.Number = r.Number
 	return in, nil
 }
