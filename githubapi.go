@@ -34,7 +34,7 @@ func (g *GithubBridge) AddIssue(ctx context.Context, in *pb.Issue) (*pb.Issue, e
 	}
 
 	if r.Message == "Not Found" {
-		g.AddIssue(ctx, &pb.Issue{Service: "githubcard", Title: "Add Failure", Body: fmt.Sprintf("Couldn't add issue for %v", in.Service)})
+		g.AddIssue(ctx, &pb.Issue{Service: "githubcard", Title: "Add Failure", Body: fmt.Sprintf("Couldn't add issue for %v with title %v", in.Service, in.GetTitle())})
 		return nil, fmt.Errorf("Error adding issue for service %v", in.Service)
 	}
 
