@@ -7,16 +7,18 @@ message Token {
 }
 
 message Issue {
-	string title = 1;
-	string body = 2;
-	string service = 3;
-	int32 number = 4;
-
-	enum IssueState {
-		OPEN = 0;
-		CLOSED = 1;
+  string title = 1;
+  string body = 2;
+  string service = 3;
+  int32 number = 4;
+  
+  enum IssueState {
+	  OPEN = 0;
+	  CLOSED = 1;
 	}
-	IssueState state = 5;
+  IssueState state = 5;
+  
+  bool sticky = 6;
 }
 
 service Github {
