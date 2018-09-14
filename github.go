@@ -24,6 +24,11 @@ import (
 	pbgs "github.com/brotherlogic/goserver/proto"
 )
 
+const (
+	// KEY the issues
+	KEY = "/github.com/brotherlogic/githubcard/issues"
+)
+
 // GithubBridge the bridge to the github API
 type GithubBridge struct {
 	*goserver.GoServer
@@ -33,6 +38,7 @@ type GithubBridge struct {
 	attempts   int
 	fails      int
 	added      map[string]time.Time
+	issues     []*pbgh.Issue
 }
 
 type httpGetter interface {
@@ -74,8 +80,25 @@ func (b GithubBridge) ReportHealth() bool {
 	return true
 }
 
+func (b *GithubBridge) saveIssues(ctx context.Context) {
+	b.KSclient.Save(ctx, KEY, &pbgh.IssueList{Issues: b.issues})
+}
+
+func (b GithubBridge) readIssues(ctx context.Context) error {
+	issues := &pbgh.IssueList{}
+	data, _, err := b.KSclient.Read(ctx, KEY, issues)
+	if err != nil {
+		return err
+	}
+	b.issues = (data.(*pbgh.IssueList).Issues)
+	return nil
+}
+
 // Mote promotes this server
 func (b GithubBridge) Mote(ctx context.Context, master bool) error {
+	if master {
+		return b.readIssues(ctx)
+	}
 	return nil
 }
 
@@ -85,6 +108,7 @@ func (b GithubBridge) GetState() []*pbgs.State {
 		&pbgs.State{Key: "attempts", Value: int64(b.attempts)},
 		&pbgs.State{Key: "fails", Value: int64(b.fails)},
 		&pbgs.State{Key: "added", Text: fmt.Sprintf("%v", b.added)},
+		&pbgs.State{Key: "sticky", Value: int64(len(b.issues))},
 	}
 }
 
