@@ -107,6 +107,26 @@ func TestAddDoubleIssue(t *testing.T) {
 	}
 }
 
+func TestAddDoubleIssueWithSticky(t *testing.T) {
+	issue := &pb.Issue{Title: "Testing", Body: "This is a test issue", Service: "Home", Sticky: true}
+
+	s := InitTest()
+	ib, err := s.AddIssue(context.Background(), issue)
+
+	if err != nil {
+		t.Fatalf("Error in adding issue: %v", err)
+	}
+
+	if ib.Number != 494 {
+		t.Errorf("Issue has not been added: %v", ib.Number)
+	}
+
+	_, err = s.AddIssue(context.Background(), issue)
+	if err != nil {
+		t.Errorf("Double add of sticky has failed: %v", err)
+	}
+}
+
 func TestAddIssueFail(t *testing.T) {
 	issue := &pb.Issue{Title: "Testing", Body: "This is a test issue", Service: "Home"}
 
@@ -116,6 +136,18 @@ func TestAddIssueFail(t *testing.T) {
 
 	if err == nil {
 		t.Fatalf("No Error returned")
+	}
+}
+
+func TestAddIssueFailWithSticky(t *testing.T) {
+	issue := &pb.Issue{Title: "Testing", Body: "This is a test issue", Service: "Home", Sticky: true}
+
+	s := InitTest()
+	s.getter = failGetter{}
+	_, err := s.AddIssue(context.Background(), issue)
+
+	if err != nil {
+		t.Fatalf("Adding sticky issue has failed: %v", err)
 	}
 }
 

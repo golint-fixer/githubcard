@@ -21,6 +21,10 @@ message Issue {
   bool sticky = 6;
 }
 
+message IssueList {
+  repeated Issue issues = 1;
+}
+
 service Github {
 	rpc AddIssue(Issue) returns (Issue) {};
 	rpc Get(Issue) returns (Issue) {};
