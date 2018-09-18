@@ -396,6 +396,7 @@ func main() {
 			b.accessCode = m.(*pbgh.Token).GetToken()
 			b.RegisterServingTask(b.RunPass)
 			b.RegisterRepeatingTask(b.cleanAdded, time.Minute)
+			b.RegisterRepeatingTask(b.procSticky, time.Minute*5)
 			b.Serve()
 		}
 	}

@@ -23,6 +23,7 @@ func (g *GithubBridge) AddIssue(ctx context.Context, in *pb.Issue) (*pb.Issue, e
 			return nil, fmt.Errorf("Unable to add this issue - recently added (%v)", v)
 		}
 		g.issues = append(g.issues, in)
+		g.saveIssues(ctx)
 		return in, nil
 	}
 
