@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/brotherlogic/keystore/client"
+
 	pb "github.com/brotherlogic/githubcard/proto"
 )
 
@@ -17,6 +19,7 @@ func InitTest() *GithubBridge {
 	s.getter = testFileGetter{}
 	s.accessCode = "token"
 	s.SkipLog = true
+	s.GoServer.KSclient = *keystoreclient.GetTestClient(".test")
 	return s
 }
 
