@@ -395,8 +395,8 @@ func main() {
 			log.Printf("GOT TOKEN: %v", m)
 			b.accessCode = m.(*pbgh.Token).GetToken()
 			b.RegisterServingTask(b.RunPass)
-			b.RegisterRepeatingTask(b.cleanAdded, time.Minute)
-			b.RegisterRepeatingTask(b.procSticky, time.Minute*5)
+			b.RegisterRepeatingTask(b.cleanAdded, "clean_added", time.Minute)
+			b.RegisterRepeatingTask(b.procSticky, "proc_sticky", time.Minute*5)
 			b.Serve()
 		}
 	}
